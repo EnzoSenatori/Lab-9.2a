@@ -1,71 +1,56 @@
-from flask import Flask, jsonify, request
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
 
-app = Flask(__name__)
+app = FastAPI()
 
-# Armazenamento em memória
 mensagens = {}
 proximo_id = 1
 
 
-@app.route("/", methods=["GET"])
+@app.get("/")
 def raiz():
-    return jsonify({
-        "mensagem": "API de mensagens. Use /mensagens para listar."
-    })
+    return {"mensagem": "API de mensagens. Use /mensagens para listar."}
 
 
-@app.route("/mensagens", methods=["GET"])
+@app.get("/mensagens")
 def listar_mensagens():
-    return jsonify(mensagens)
+    return mensagens
 
 
-@app.route("/mensagens/<int:id>", methods=["GET"])
-def obter_mensagem(id):
+@app.get("/mensagens/{id}")
+def obter_mensagem(id: int):
     if id not in mensagens:
-        return jsonify({"erro": "Mensagem nao encontrada"}), 404
-    return jsonify(mensagens[id])
+        return JSONResponse({"erro": "Mensagem nao encontrada"}, status_code=404)
+    return mensagens[id]
 
 
-@app.route("/mensagens", methods=["POST"])
-def criar_mensagem():
+@app.post("/mensagens")
+async def criar_mensagem(request: Request):
     global proximo_id
-
-    dados = request.get_json()
-
-    if dados is None or "texto" not in dados:
-        return jsonify({"erro": "Campo 'texto' e obrigatorio"}), 400
-
-    nova_mensagem = {"texto": dados["texto"]}
+    dados = await request.json()
+    if dados is None or "text" not in dados:
+        return JSONResponse({"erro": "Campo 'text' e obrigatorio"}, status_code=400)
+    nova_mensagem = {"text": dados["text"]}
     mensagens[proximo_id] = nova_mensagem
-
-    resposta = {"id": proximo_id, "texto": nova_mensagem["texto"]}
+    resposta = {"id": proximo_id, "text": nova_mensagem["text"]}
     proximo_id = proximo_id + 1
+    return JSONResponse(resposta, status_code=201)
 
-    return jsonify(resposta), 201
 
-
-@app.route("/mensagens/<int:id>", methods=["PUT"])
-def atualizar_mensagem(id):
+@app.put("/mensagens/{id}")
+async def atualizar_mensagem(id: int, request: Request):
     if id not in mensagens:
-        return jsonify({"erro": "Mensagem nao encontrada"}), 404
-
-    dados = request.get_json()
-
-    if dados is None or "texto" not in dados:
-        return jsonify({"erro": "Campo 'texto' e obrigatorio"}), 400
-
-    mensagens[id] = {"texto": dados["texto"]}
-
-    return jsonify({"id": id, "texto": mensagens[id]["texto"]})
+        return JSONResponse({"erro": "Mensagem nao encontrada"}, status_code=404)
+    dados = await request.json()
+    if dados is None or "text" not in dados:
+        return JSONResponse({"erro": "Campo 'text' e obrigatorio"}, status_code=400)
+    mensagens[id] = {"text": dados["text"]}
+    return {"id": id, "text": mensagens[id]["text"]}
 
 
-@app.route("/mensagens/<int:id>", methods=["DELETE"])
-def deletar_mensagem(id):
+@app.delete("/mensagens/{id}")
+def deletar_mensagem(id: int):
     if id not in mensagens:
-        return jsonify({"erro": "Mensagem nao encontrada"}), 404
+        return JSONResponse({"erro": "Mensagem nao encontrada"}, status_code=404)
     del mensagens[id]
-    return jsonify({"mensagem": "Mensagem deletada com sucesso"})
-
-
-if __name__ == "__main__":
-    app.run(debug=True)
+    return {"mensagem": "Mensagem deletada com sucesso"}

@@ -28,11 +28,11 @@ def obter_mensagem(id: int):
 async def criar_mensagem(request: Request):
     global proximo_id
     dados = await request.json()
-    if dados is None or "text" not in dados:
-        return JSONResponse({"erro": "Campo 'text' e obrigatorio"}, status_code=400)
-    nova_mensagem = {"text": dados["text"]}
+    if dados is None or "texto" not in dados:
+        return JSONResponse({"erro": "Campo 'texto' e obrigatorio"}, status_code=400)
+    nova_mensagem = {"texto": dados["texto"]}
     mensagens[proximo_id] = nova_mensagem
-    resposta = {"id": proximo_id, "text": nova_mensagem["text"]}
+    resposta = {"id": proximo_id, "texto": nova_mensagem["texto"]}
     proximo_id = proximo_id + 1
     return JSONResponse(resposta, status_code=201)
 
@@ -42,10 +42,10 @@ async def atualizar_mensagem(id: int, request: Request):
     if id not in mensagens:
         return JSONResponse({"erro": "Mensagem nao encontrada"}, status_code=404)
     dados = await request.json()
-    if dados is None or "text" not in dados:
-        return JSONResponse({"erro": "Campo 'text' e obrigatorio"}, status_code=400)
-    mensagens[id] = {"text": dados["text"]}
-    return {"id": id, "text": mensagens[id]["text"]}
+    if dados is None or "texto" not in dados:
+        return JSONResponse({"erro": "Campo 'texto' e obrigatorio"}, status_code=400)
+    mensagens[id] = {"texto": dados["texto"]}
+    return {"id": id, "texto": mensagens[id]["texto"]}
 
 
 @app.delete("/mensagens/{id}")
